@@ -2,68 +2,81 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project: Gotham Court
+
+Decentralized AI-powered dispute resolution on GenLayer. Users file cases, defendants submit defenses, and AI validators judge via Optimistic Democracy consensus.
+
+**Deployed contract**: `0x09c7fF6DbaF4dA1A826eCa3B2D46cF11Dab9f064` on GenLayer studionet (chain ID 61999).
+
 ## Quick Commands
 
 ```bash
 npm run deploy          # Deploy contracts via GenLayer CLI
-npm run dev             # Start frontend dev server (cd frontend && npm run dev)
+npm run dev             # Start frontend dev server
 npm run build           # Build frontend for production
-gltest                  # Run contract tests (requires GenLayer Studio running)
+gltest                  # Run contract tests (requires GenLayer Studio)
 genlayer network        # Select network (studionet/localnet/testnet)
 ```
 
 ## Architecture
 
 ```
-contracts/          # Python intelligent contracts
-frontend/           # Next.js 15 app (TypeScript, TanStack Query, Radix UI)
-deploy/             # TypeScript deployment scripts
-test/               # Python integration tests (gltest)
+contracts/
+  gotham_court.py       # GenLayer intelligent contract (case filing, defense, AI judgment)
+frontend/               # Next.js 16 app (React 19, TypeScript, TanStack Query, Radix UI)
+  app/page.tsx          # Main page (hero, case feed, how-it-works)
+  components/           # CaseFeed, CaseDetail, FileCaseModal, Navbar, AccountPanel
+  lib/contracts/        # GothamCourt.ts (SDK wrapper), types.ts
+  lib/hooks/            # useGothamCourt.ts (TanStack Query hooks)
+  lib/genlayer/         # WalletProvider.tsx (MetaMask), client.ts
+deploy/                 # TypeScript deployment scripts (genlayer deploy)
+test/                   # Python integration tests (gltest)
+config/                 # Python config loader
 ```
 
-**Frontend stack**: Next.js 15, React 19, TypeScript, Tailwind CSS, TanStack Query, Wagmi/Viem, MetaMask wallet integration.
+## Key Technical Details
 
-## Development Workflow
+- **GenVM**: Does NOT support `import json`. Use `from dataclasses import dataclass` explicitly.
+- **Address type**: SDK passes addresses as strings. Use `Address(defendant)` conversion in contract.
+- **genlayer-js SDK**: `readContract` returns JavaScript `Map` objects, not plain objects. Frontend converts with `item.forEach((value, key) => obj[key] = value)`.
+- **writeContract**: Always pass `value: BigInt(0)` parameter.
+- **TransactionStatus**: Import from `genlayer-js/types`.
+- **Chain**: Use `studionet` from `genlayer-js/chains`.
 
-1. Ensure GenLayer Studio is running (local or https://studio.genlayer.com)
-2. Select network: `genlayer network`
-3. Deploy contract: `npm run deploy`
-4. Copy deployed address to `frontend/.env` as `NEXT_PUBLIC_CONTRACT_ADDRESS`
-5. Run frontend: `cd frontend && bun dev`
-
-## Contract Development
-
-Contracts are Python files in `/contracts/` using the GenLayer SDK:
+## Contract Pattern
 
 ```python
+from dataclasses import dataclass
 from genlayer import *
 
-class MyContract(gl.Contract):
-    data: TreeMap[Address, str]  # Storage declaration
+@allow_storage
+@dataclass
+class Case:
+    id: u256
+    plaintiff: Address
+    # ...
+    status: str
 
-    def __init__(self):
-        self.data = TreeMap()
-
-    @gl.public.view
-    def get_data(self, addr: Address) -> str:
-        return self.data.get(addr, "")
+class GothamCourt(gl.Contract):
+    cases: TreeMap[u256, Case]
+    case_count: u256
 
     @gl.public.write
-    def set_data(self, value: str):
-        self.data[gl.message.sender_address] = value
+    def file_case(self, defendant: Address, ...) -> u256:
+        defendant_as_addr = Address(defendant) if isinstance(defendant, str) else defendant
+        # ...
+
+    @gl.public.write
+    def judge_case(self, case_id: u256) -> None:
+        # Uses gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        # leader_fn: scrapes evidence via gl.nondet.web.render(), generates verdict via gl.nondet.exec_prompt()
+        # validator_fn: independently re-runs and compares verdict + severity (±2 tolerance)
 ```
-
-**Decorators**:
-- `@gl.public.view` - Read-only methods
-- `@gl.public.write` - State-modifying methods
-- `@gl.public.write.payable` - Methods accepting value
-
-**Storage types**: `TreeMap`, `DynArray`, `Array`, `@allow_storage` for custom classes
 
 ## Frontend Patterns
 
-- Contract interactions: `frontend/lib/contracts/FootballBets.ts`
-- React hooks: `frontend/lib/hooks/useFootballBets.ts`
+- Contract interactions: `frontend/lib/contracts/GothamCourt.ts`
+- React hooks: `frontend/lib/hooks/useGothamCourt.ts`
 - Wallet context: `frontend/lib/genlayer/WalletProvider.tsx`
 - GenLayer client: `frontend/lib/genlayer/client.ts`
 

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { User, LogOut, AlertCircle, ExternalLink } from "lucide-react";
 import { useWallet } from "@/lib/genlayer/wallet";
-import { usePlayerPoints } from "@/lib/hooks/useFootballBets";
 import { success, error, userRejected } from "@/lib/utils/toast";
 import { AddressDisplay } from "./AddressDisplay";
 import { Button } from "./ui/button";
@@ -30,8 +29,6 @@ export function AccountPanel() {
     disconnectWallet,
     switchWalletAccount,
   } = useWallet();
-
-  const { data: points = 0 } = usePlayerPoints(address);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionError, setConnectionError] = useState("");
@@ -97,18 +94,18 @@ export function AccountPanel() {
     return (
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogTrigger asChild>
-          <Button variant="gradient" disabled={isLoading}>
+          <Button variant="default" disabled={isLoading}>
             <User className="w-4 h-4 mr-2" />
             Connect Wallet
           </Button>
         </DialogTrigger>
-        <DialogContent className="brand-card border-2">
+        <DialogContent className="gotham-card border-2">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               Connect to GenLayer
             </DialogTitle>
             <DialogDescription>
-              Connect your MetaMask wallet to start betting
+              Connect your MetaMask wallet to file and judge cases
             </DialogDescription>
           </DialogHeader>
 
@@ -126,7 +123,7 @@ export function AccountPanel() {
 
                 <Button
                   onClick={() => window.open(METAMASK_INSTALL_URL, "_blank")}
-                  variant="gradient"
+                  variant="default"
                   className="w-full h-14 text-lg"
                 >
                   <ExternalLink className="w-5 h-5 mr-2" />
@@ -144,7 +141,7 @@ export function AccountPanel() {
               <>
                 <Button
                   onClick={handleConnect}
-                  variant="gradient"
+                  variant="default"
                   className="w-full h-14 text-lg"
                   disabled={isConnecting}
                 >
@@ -182,16 +179,9 @@ export function AccountPanel() {
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <div className="flex items-center gap-4">
-        <div className="brand-card px-4 py-2 flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-accent" />
-            <AddressDisplay address={address} maxLength={12} />
-          </div>
-          <div className="h-4 w-px bg-white/10" />
-          <div className="flex items-center gap-1">
-            <span className="text-sm font-semibold text-accent">{points}</span>
-            <span className="text-xs text-muted-foreground">pts</span>
-          </div>
+        <div className="gotham-card px-4 py-2 flex items-center gap-2">
+          <User className="w-4 h-4 text-accent" />
+          <AddressDisplay address={address} maxLength={12} />
         </div>
 
         <DialogTrigger asChild>
@@ -201,7 +191,7 @@ export function AccountPanel() {
         </DialogTrigger>
       </div>
 
-      <DialogContent className="brand-card border-2">
+        <DialogContent className="gotham-card border-2">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             Wallet Details
@@ -212,17 +202,12 @@ export function AccountPanel() {
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          <div className="brand-card p-4 space-y-2">
+          <div className="gotham-card p-4 space-y-2">
             <p className="text-sm text-muted-foreground">Your Address</p>
             <code className="text-sm font-mono break-all">{address}</code>
           </div>
 
-          <div className="brand-card p-4 space-y-2">
-            <p className="text-sm text-muted-foreground">Your Points</p>
-            <p className="text-2xl font-bold text-accent">{points}</p>
-          </div>
-
-          <div className="brand-card p-4 space-y-2">
+          <div className="gotham-card p-4 space-y-2">
             <p className="text-sm text-muted-foreground">Network Status</p>
             <div className="flex items-center gap-2">
               <div

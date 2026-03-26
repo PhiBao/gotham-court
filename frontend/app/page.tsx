@@ -1,109 +1,135 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
-import { BetsTable } from "@/components/BetsTable";
-import { Leaderboard } from "@/components/Leaderboard";
+import { CaseFeed } from "@/components/CaseFeed";
+import { CaseDetail } from "@/components/CaseDetail";
+import { FileCaseModal } from "@/components/FileCaseModal";
+import { useGothamCourt } from "@/lib/hooks/useGothamCourt";
+import { Case } from "@/lib/contracts/types";
 
 export default function HomePage() {
+  const { cases, isLoading, useCase } = useGothamCourt();
+  const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null);
+  const [fileCaseOpen, setFileCaseOpen] = useState(false);
+
+  const openFileCase = useCallback(() => setFileCaseOpen(true), []);
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <Navbar />
+      <Navbar onFileCaseClick={openFileCase} />
+      <FileCaseModal open={fileCaseOpen} onOpenChange={setFileCaseOpen} />
 
-      {/* Main Content - Padding to account for fixed navbar */}
       <main className="flex-grow pt-20 pb-12 px-4 md:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-8 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Football Prediction Betting
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              AI-powered football match predictions on GenLayer blockchain.
-              <br />
-              Create bets, make predictions, and compete for points.
-            </p>
-          </div>
-
-          {/* Main Grid Layout - 2/1 columns on desktop, stacked on mobile */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* Left Column - Bets Table (67% on desktop) */}
-            <div className="lg:col-span-8 animate-slide-up">
-              <BetsTable />
-            </div>
-
-            {/* Right Column - Leaderboard (33% on desktop) */}
-            <div className="lg:col-span-4 animate-slide-up" style={{ animationDelay: "100ms" }}>
-              <Leaderboard />
-            </div>
-          </div>
-
-          {/* Info Section */}
-          <div className="mt-8 glass-card p-6 md:p-8 animate-fade-in" style={{ animationDelay: "200ms" }}>
-            <h2 className="text-2xl font-bold mb-4">How it Works</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">1. Create a Bet</div>
-                <p className="text-sm text-muted-foreground">
-                  Connect your wallet and create a football match prediction. Choose the teams, date, and your predicted winner.
+        <div className="max-w-4xl mx-auto">
+          {selectedCaseId !== null ? (
+            <CaseDetailWrapper
+              caseId={selectedCaseId}
+              onBack={() => setSelectedCaseId(null)}
+              useCase={useCase}
+            />
+          ) : (
+            <>
+              {/* Hero */}
+              <div className="text-center mb-10 animate-fade-in">
+                <p className="text-5xl mb-4">🦇</p>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+                  <span className="text-accent">GOTHAM</span> COURT
+                </h1>
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                  Decentralized AI-powered dispute resolution.
+                  <br />
+                  File cases. Present evidence. Let AI judges deliver justice.
                 </p>
               </div>
-              <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">2. Wait for Resolution</div>
-                <p className="text-sm text-muted-foreground">
-                  After the match, the bet creator resolves the bet. GenLayer's AI verifies the actual match result.
-                </p>
+
+              {/* Case Feed */}
+              <div className="animate-slide-up">
+                <CaseFeed
+                  cases={cases}
+                  isLoading={isLoading}
+                  onSelectCase={setSelectedCaseId}
+                  onFileCaseClick={openFileCase}
+                />
               </div>
-              <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">3. Earn Points</div>
-                <p className="text-sm text-muted-foreground">
-                  Correct predictions earn you points. Climb the leaderboard and prove your football knowledge!
-                </p>
+
+              {/* How It Works */}
+              <div
+                className="mt-10 gotham-card p-6 md:p-8 animate-fade-in"
+                style={{ animationDelay: "200ms" }}
+              >
+                <h2 className="text-2xl font-bold mb-4">
+                  How <span className="text-accent">Justice</span> Works
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                  {[
+                    { step: "1", title: "File Case", desc: "Light the Bat-Signal. Identify the defendant, describe the dispute, and present evidence URLs." },
+                    { step: "2", title: "Defense", desc: "The defendant submits their defense statement and counter-evidence for review." },
+                    { step: "3", title: "AI Judgment", desc: "AI judges scrape evidence, analyze both sides, and deliver a verdict via Optimistic Democracy." },
+                    { step: "4", title: "Verdict", desc: "Guilty, Not Guilty, or Insufficient Evidence. Results stored on-chain permanently." },
+                  ].map(({ step, title, desc }) => (
+                    <div key={step} className="space-y-2">
+                      <div className="text-accent font-bold text-lg">
+                        {step}. {title}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-2">
+      <footer className="border-t border-accent/10 py-3">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <a
-                href="https://genlayer.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-accent transition-colors"
-              >
-                Powered by GenLayer
-              </a>
-              <a
-                href="https://studio.genlayer.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-accent transition-colors"
-              >
-                Studio
-              </a>
-              <a
-                href="https://docs.genlayer.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-accent transition-colors"
-              >
-                Docs
-              </a>
-              <a
-                href="https://github.com/genlayerlabs/genlayer-project-boilerplate"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-accent transition-colors"
-              >
-                GitHub
-              </a>
+            <span className="text-accent/60">🦇 Gotham Court</span>
+            <a
+              href="https://genlayer.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-accent transition-colors"
+            >
+              Powered by GenLayer
+            </a>
+            <a
+              href="https://docs.genlayer.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-accent transition-colors"
+            >
+              Docs
+            </a>
           </div>
         </div>
       </footer>
     </div>
   );
+}
+
+function CaseDetailWrapper({
+  caseId,
+  onBack,
+  useCase,
+}: {
+  caseId: number;
+  onBack: () => void;
+  useCase: (id: number) => any;
+}) {
+  const { data: caseData, isLoading } = useCase(caseId);
+
+  if (isLoading || !caseData) {
+    return (
+      <div className="gotham-card p-8 text-center animate-pulse space-y-3">
+        <div className="h-6 bg-muted rounded w-1/3 mx-auto" />
+        <div className="h-4 bg-muted rounded w-2/3 mx-auto" />
+        <div className="h-32 bg-muted rounded w-full mt-4" />
+      </div>
+    );
+  }
+
+  return <CaseDetail caseData={caseData as Case} onBack={onBack} />;
 }

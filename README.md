@@ -1,98 +1,142 @@
-# Sample GenLayer project
+# 🦇 GOTHAM COURT
+
+**Decentralized AI-Powered Dispute Resolution on GenLayer**
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/mit/)
-[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/8Jm4v89VAu)
-[![Telegram](https://img.shields.io/badge/Telegram--T.svg?style=social&logo=telegram)](https://t.me/genlayer)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/yeagerai.svg?style=social&label=Follow%20%40GenLayer)](https://x.com/GenLayer)
-[![GitHub star chart](https://img.shields.io/github/stars/yeagerai/genlayer-project-boilerplate?style=social)](https://star-history.com/#yeagerai/genlayer-js)
+[![GenLayer](https://img.shields.io/badge/Built%20on-GenLayer-FFD700)](https://genlayer.com)
 
-## 👀 About
-This project includes the boilerplate code for a GenLayer use case implementation, specifically a football bets game.
+> *"In the darkness of disputes, AI brings the light of justice."*
 
-## 📦 What's included
-- Basic requirements to deploy and test your intelligent contracts locally
-- Configuration file template
-<!-- - Test functions to write complete end-to-end tests -->
-- An example of an intelligent contract (Football Bets)
-- Example end-to-end tests for the contract provided
-- A production-ready Next.js 15 frontend with TypeScript, TanStack Query, and Radix UI
+## What is Gotham Court?
 
-## 🛠️ Requirements
-- A running GenLayer Studio (Install from [Docs](https://docs.genlayer.com/developers/intelligent-contracts/tooling-setup#using-the-genlayer-studio) or work with the hosted version of [GenLayer Studio](https://studio.genlayer.com/)). If you are working locally, this repository code does not need to be located in the same directory as the Genlayer Studio.
-- [GenLayer CLI](https://github.com/genlayerlabs/genlayer-cli) globally installed. To install or update the GenLayer CLI run `npm install -g genlayer`
+Gotham Court is a decentralized dispute resolution system built on [GenLayer](https://genlayer.com)'s AI-native blockchain. File a case, present evidence, and let AI judges analyze both sides to deliver fair verdicts through **Optimistic Democracy** consensus.
 
-## 🚀 Steps to run this example
+No human bias. No backroom deals. Just on-chain justice.
 
-### 1. Deploy the contract
-   Deploy the contract from `/contracts/football_bets.py` using the GenLayer CLI:
-   1. Choose the network that you want to use (studionet, localnet, or tesnet-*): `genlayer network`
-   2. Execute the deploy command `genlayer deploy`. This command is going to execute the deploy script located in `/deploy/deployScript.ts`
+### How It Works
 
-### 2. Setup the frontend environment
-  1. All the content of the dApp is located in the `/frontend` folder.
-  2. Copy the `.env.example` file in the `frontend` folder and rename it to `.env`, then fill in the values for your configuration. The provided NEXT_PUBLIC_GENLAYER_RPC_URL value is the backend of the hosted GenLayer Studio.
-  3. Add the deployed contract address to the `/frontend/.env` under the variable `NEXT_PUBLIC_CONTRACT_ADDRESS`
+1. **File a Case** — Plaintiff identifies the defendant, describes the dispute, and submits evidence URLs
+2. **Submit Defense** — Defendant responds with their counter-arguments and evidence
+3. **AI Judgment** — Multiple AI validators independently scrape evidence, analyze both sides, and reach consensus
+4. **Verdict** — Guilty, Not Guilty, or Insufficient Evidence with severity rating (1-10) and AI reasoning
 
-### 4. Run the frontend Next.js app
-   Execute the following commands in your terminal:
+## Tech Stack
 
-   **Using bun:**
-   ```shell
-   cd frontend
-   bun install
-   bun dev
-   ```
+### Intelligent Contract (Python / GenVM)
+- **GenLayer Intelligent Contract** with `@allow_storage` dataclass for case storage
+- **TreeMap** storage for on-chain case management
+- **`gl.nondet.web.render()`** for evidence scraping during judgment
+- **`gl.nondet.exec_prompt()`** for AI-powered verdict generation
+- **Optimistic Democracy** — leader proposes verdict, validators independently verify
 
-   **Using npm:**
-   ```shell
-   cd frontend
-   npm install
-   npm run dev
-   ```
+### Frontend (TypeScript / Next.js)
+- **Next.js 16** with App Router and Turbopack
+- **React 19** with TanStack Query v5 for data fetching
+- **genlayer-js SDK** for contract interaction
+- **Radix UI** primitives + **Tailwind CSS v4** (OKLCH color system)
+- **MetaMask** wallet integration
+- Dark "Gotham" theme with animated UI
 
-   The terminal should display a link to access your frontend app (usually at <http://localhost:3000/>).
-   For more information on the code see [GenLayerJS](https://github.com/yeagerai/genlayer-js).
-   
-### 5. Test contracts
-1. Install the Python packages listed in the `requirements.txt` file in a virtual environment.
-2. Make sure your GenLayer Studio is running. Then execute the following command in your terminal:
-   ```shell
-   gltest
-   ```
+## Features
 
-## ⚽ How the Football Bets Contract Works
+- **Case Filing** — File disputes against any address with evidence URLs
+- **Defense System** — Defendants can respond with counter-evidence
+- **AI Judgment** — GenLayer validators scrape evidence and reach consensus
+- **Case Analytics** — Real-time stats dashboard with verdict distribution
+- **Filter Tabs** — Filter cases by status (Open / Defense / Judged)
+- **Case Timeline** — Visual progress tracker (Filed → Defense → Judged)
+- **Severity Bars** — Visual severity indicators for judged cases
+- **Inline Validation** — Real-time form validation with error feedback
 
-The Football Bets contract allows users to create bets for football matches, resolve those bets, and earn points for correct bets. Here's a breakdown of its main functionalities:
+## Project Structure
 
-1. Creating Bets:
-   - Users can create a bet for a specific football match by providing the game date, team names, and their predicted winner.
-   - The contract checks if the game has already finished and if the user has already made a bet for this match.
+```
+gotham-court/
+├── contracts/
+│   └── gotham_court.py          # GenLayer intelligent contract
+├── frontend/
+│   ├── app/
+│   │   ├── page.tsx             # Main page
+│   │   ├── layout.tsx           # Root layout
+│   │   └── globals.css          # Gotham dark theme
+│   ├── components/
+│   │   ├── CaseFeed.tsx         # Case list + filters + analytics
+│   │   ├── CaseDetail.tsx       # Case view + timeline + judgment
+│   │   ├── FileCaseModal.tsx    # File case dialog with validation
+│   │   ├── Navbar.tsx           # Navigation + stats
+│   │   └── AccountPanel.tsx     # MetaMask wallet panel
+│   └── lib/
+│       ├── contracts/
+│       │   ├── GothamCourt.ts   # Contract interaction class
+│       │   └── types.ts         # TypeScript types
+│       ├── hooks/
+│       │   └── useGothamCourt.ts # TanStack Query hooks
+│       └── genlayer/
+│           └── WalletProvider.tsx # MetaMask provider
+├── deploy/                       # Deployment scripts
+└── test/                         # Integration tests
+```
 
-2. Resolving Bets:
-   - After a match has concluded, users can resolve their bets.
-   - The contract fetches the actual match result from a specified URL.
-   - If the Bet was correct, the user earns a point.
+## Quick Start
 
-3. Querying Data:
-   - Users can retrieve all bets.
-   - The contract also allows querying of points, either for all players or for a specific player.
+### Prerequisites
+- [Node.js](https://nodejs.org/) v18+
+- [GenLayer CLI](https://github.com/genlayerlabs/genlayer-cli): `npm install -g genlayer`
+- Access to [GenLayer Studio](https://studio.genlayer.com/) (testnet)
 
-4. Getting Points:
-   - Points are awarded for correct bets.
-   - Users can check their total points or the points of any player.
+### 1. Install dependencies
+```bash
+npm install
+cd frontend && npm install
+```
 
-## 🧪 Tests
+### 2. Deploy the contract
+```bash
+# Select network
+genlayer network
 
-This project includes integration tests that interact with the contract deployed in the Studio. These tests cover the main functionalities of the Football Bets contract:
+# Deploy
+genlayer deploy
+```
 
-1. Creating a bet
-2. Resolving a bet
-3. Querying bets for a player
-4. Querying points for a player
+### 3. Configure frontend
+```bash
+# Update contract address in frontend/.env
+echo "NEXT_PUBLIC_CONTRACT_ADDRESS=<your-contract-address>" > frontend/.env
+echo "NEXT_PUBLIC_GENLAYER_RPC_URL=https://studio.genlayer.com/api" >> frontend/.env
+echo "NEXT_PUBLIC_GENLAYER_CHAIN_ID=61999" >> frontend/.env
+```
 
-The tests simulate real-world interactions with the contract, ensuring that it behaves correctly under various scenarios. They use the GenLayer Studio to deploy and interact with the contract, providing a comprehensive check of the contract's functionality in a controlled environment.
+### 4. Run the frontend
+```bash
+cd frontend
+npm run dev
+```
 
-To run the tests, use the `gltest` command as mentioned in the "Steps to run this example" section.
+Open [http://localhost:3000](http://localhost:3000) and connect MetaMask to the GenLayer network (chain ID 61999).
 
+## Architecture
+
+```
+User (MetaMask) → Frontend (Next.js) → genlayer-js SDK → GenLayer RPC
+                                                              ↓
+                                                    Intelligent Contract
+                                                    (gotham_court.py)
+                                                              ↓
+                                                    AI Validators scrape
+                                                    evidence & judge via
+                                                    Optimistic Democracy
+```
+
+## Hackathon Track
+
+**Onchain Justice** — *GenLayer Testnet Bradbury Hackathon*
+
+Built to demonstrate how GenLayer's AI-native blockchain enables trustless, transparent dispute resolution where AI validators independently analyze evidence and reach consensus — no human judges required.
+
+## License
+
+MIT
 
 ## 💬 Community
 Connect with the GenLayer community to discuss, collaborate, and share insights:

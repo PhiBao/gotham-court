@@ -23,3 +23,11 @@ __pycache__/
 *.compiled.js
 package-lock.json
 
+# Old / backup files
+*.bak
+/frontend/.next_stale
+/frontend/.next_old
+
+# Debug scripts
+*.compiled.mjs
+dist/

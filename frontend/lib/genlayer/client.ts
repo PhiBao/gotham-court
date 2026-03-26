@@ -177,11 +177,19 @@ export async function switchToGenLayerNetwork(): Promise<void> {
       params: [{ chainId: GENLAYER_CHAIN_ID_HEX }],
     });
   } catch (error: any) {
-    // If the chain is not added, add it
-    if (error.code === 4902) {
-      await addGenLayerNetwork();
-    } else if (error.code === 4001) {
+    if (error.code === 4001) {
       throw new Error("User rejected switching the network");
+    }
+
+    // Chain not added to wallet — error code 4902 is standard,
+    // but some wallets return a different code with "Unrecognized chain ID"
+    const needsAdd =
+      error.code === 4902 ||
+      /unrecognized chain id/i.test(error.message) ||
+      /try adding the chain/i.test(error.message);
+
+    if (needsAdd) {
+      await addGenLayerNetwork();
     } else {
       throw new Error(`Failed to switch network: ${error.message}`);
     }

@@ -1,23 +1,30 @@
 /**
- * TypeScript types for GenLayer Football Betting contract
+ * TypeScript types for Gotham Court contract
  */
 
-export interface Bet {
-  id: string;
-  game_date: string;
-  team1: string;
-  team2: string;
-  predicted_winner: string;
-  has_resolved: boolean;
-  real_winner?: string;
-  real_score?: string;
-  resolution_url?: string;
-  owner: string;
+export interface Case {
+  id: number;
+  plaintiff: string;
+  defendant: string;
+  title: string;
+  description: string;
+  evidence_urls: string;
+  defense_text: string;
+  defense_urls: string;
+  verdict: string;
+  reasoning: string;
+  severity: number;
+  status: "OPEN" | "DEFENSE" | "JUDGED";
 }
 
-export interface LeaderboardEntry {
-  address: string;
-  points: number;
+export interface CaseSummary {
+  id: number;
+  plaintiff: string;
+  defendant: string;
+  title: string;
+  verdict: string;
+  severity: number;
+  status: "OPEN" | "DEFENSE" | "JUDGED";
 }
 
 export interface TransactionReceipt {
@@ -25,9 +32,4 @@ export interface TransactionReceipt {
   hash: string;
   blockNumber?: number;
   [key: string]: any;
-}
-
-export interface BetFilters {
-  resolved?: boolean;
-  owner?: string;
 }
