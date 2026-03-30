@@ -215,13 +215,16 @@ export function CaseFeed({ cases, isLoading, onSelectCase, onFileCaseClick }: Ca
   if (!cases || cases.length === 0) {
     return (
       <div className="gotham-card p-10 text-center">
-        <div className="text-5xl mb-4">🦇</div>
-        <h3 className="text-xl font-bold mb-2">No Cases Filed Yet</h3>
-        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+        <div className="relative inline-block mb-4">
+          <div className="absolute inset-0 blur-2xl bg-accent/15 rounded-full scale-150" />
+          <div className="relative text-6xl">🦇</div>
+        </div>
+        <h3 className="text-2xl font-bold mb-2">The Court Awaits</h3>
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
           Gotham is quiet... for now. Be the first to light the Bat-Signal and bring a dispute before the court.
         </p>
         {onFileCaseClick && (
-          <button onClick={onFileCaseClick} className="btn-bat px-6 py-2.5 text-sm font-semibold">
+          <button onClick={onFileCaseClick} className="btn-bat px-8 py-3 text-sm font-bold">
             ⚡ File the First Case
           </button>
         )}

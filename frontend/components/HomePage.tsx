@@ -31,16 +31,30 @@ export default function HomePage() {
           ) : (
             <>
               {/* Hero */}
-              <div className="text-center mb-10 animate-fade-in">
-                <p className="text-5xl mb-4">🦇</p>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                  <span className="text-accent">GOTHAM</span> COURT
+              <div className="text-center mb-12 animate-fade-in">
+                {/* Bat-Signal Glow */}
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 blur-3xl bg-accent/20 rounded-full scale-150 animate-pulse-glow" />
+                  <p className="relative text-7xl" style={{ filter: "drop-shadow(0 0 24px oklch(0.85 0.17 85 / 0.5))" }}>🦇</p>
+                </div>
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-tight">
+                  <span className="text-accent" style={{ textShadow: "0 0 40px oklch(0.85 0.17 85 / 0.3)" }}>GOTHAM</span>{" "}
+                  <span className="text-foreground">COURT</span>
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Decentralized AI-powered dispute resolution.
-                  <br />
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                  Decentralized AI-powered dispute resolution on{" "}
+                  <span className="text-accent font-semibold">GenLayer</span>.
+                </p>
+                <p className="text-sm text-muted-foreground/60 mt-2 italic">
                   File cases. Present evidence. Let AI judges deliver justice.
                 </p>
+                {!cases?.length && (
+                  <div className="mt-8">
+                    <button onClick={openFileCase} className="btn-bat px-8 py-3 text-base font-bold animate-pulse-glow">
+                      ⚡ Light the Bat-Signal
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Case Feed */}
@@ -55,27 +69,36 @@ export default function HomePage() {
 
               {/* How It Works */}
               <div
-                className="mt-10 gotham-card p-6 md:p-8 animate-fade-in"
+                className="mt-12 gotham-card p-6 md:p-8 animate-fade-in"
                 style={{ animationDelay: "200ms" }}
               >
-                <h2 className="text-2xl font-bold mb-4">
+                <h2 className="text-2xl font-bold mb-6">
                   How <span className="text-accent">Justice</span> Works
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                   {[
-                    { step: "1", title: "File Case", desc: "Light the Bat-Signal. Identify the defendant, describe the dispute, and present evidence URLs." },
-                    { step: "2", title: "Defense", desc: "The defendant submits their defense statement and counter-evidence for review." },
-                    { step: "3", title: "AI Judgment", desc: "AI judges scrape evidence, analyze both sides, and deliver a verdict via Optimistic Democracy." },
-                    { step: "4", title: "Verdict", desc: "Guilty, Not Guilty, or Insufficient Evidence. Results stored on-chain permanently." },
-                  ].map(({ step, title, desc }) => (
-                    <div key={step} className="space-y-2">
-                      <div className="text-accent font-bold text-lg">
-                        {step}. {title}
+                    { step: "1", emoji: "🔦", title: "File Case", desc: "Light the Bat-Signal. Identify the defendant, present your evidence, and state your case." },
+                    { step: "2", emoji: "🛡️", title: "Defense", desc: "The accused answers the charges. Submit a defense statement and counter-evidence." },
+                    { step: "3", emoji: "🤖", title: "AI Judgment", desc: "AI judges scrape evidence, analyze arguments, and reach consensus via Optimistic Democracy." },
+                    { step: "4", emoji: "⚖️", title: "Verdict", desc: "Guilty, Not Guilty, or Insufficient Evidence — etched on-chain permanently." },
+                  ].map(({ step, emoji, title, desc }) => (
+                    <div key={step} className="space-y-3 text-center md:text-left">
+                      <div className="text-3xl">{emoji}</div>
+                      <div className="text-accent font-bold text-base">
+                        {title}
                       </div>
-                      <p className="text-sm text-muted-foreground">{desc}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Tech Footer */}
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground/50 animate-fade-in" style={{ animationDelay: "400ms" }}>
+                <span className="bg-secondary/50 px-2.5 py-1 rounded-full">GenLayer SDK</span>
+                <span className="bg-secondary/50 px-2.5 py-1 rounded-full">Optimistic Democracy</span>
+                <span className="bg-secondary/50 px-2.5 py-1 rounded-full">AI Consensus</span>
+                <span className="bg-secondary/50 px-2.5 py-1 rounded-full">On-Chain Verdicts</span>
               </div>
             </>
           )}

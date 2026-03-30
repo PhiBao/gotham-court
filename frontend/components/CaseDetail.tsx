@@ -221,26 +221,34 @@ export function CaseDetail({ caseData, onBack }: CaseDetailProps) {
 
       {/* Verdict */}
       {isJudged && (
-        <div className={`gotham-card p-6 border-2 ${verdictColor}`} style={{ borderColor: "inherit" }}>
-          <div className="flex items-center gap-3 mb-4">
-            <Gavel className="w-6 h-6" />
-            <h3 className="text-xl font-bold">Verdict</h3>
-          </div>
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-bold ${verdictColor}`}>
-                {caseData.verdict === "GUILTY" ? "GUILTY" : caseData.verdict === "NOT_GUILTY" ? "NOT GUILTY" : "INSUFFICIENT EVIDENCE"}
-              </span>
-              <SeverityDisplay severity={caseData.severity} />
-            </div>
-            {caseData.reasoning && (
-              <div className="bg-black/20 rounded-lg p-4">
-                <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                  <span className="text-accent">🤖</span> AI Reasoning
-                </p>
-                <p className="text-sm text-foreground/85 leading-relaxed">{caseData.reasoning}</p>
+        <div className={`gotham-card p-6 border-2 relative overflow-hidden animate-[fadeInScale_0.5s_ease-out] ${verdictColor}`} style={{ borderColor: "inherit" }}>
+          {/* Glow background */}
+          <div className={`absolute inset-0 opacity-10 ${
+            caseData.verdict === "GUILTY" ? "bg-red-500" : caseData.verdict === "NOT_GUILTY" ? "bg-green-500" : "bg-amber-500"
+          } blur-2xl`} />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="relative">
+                <Gavel className="w-7 h-7 text-accent" />
               </div>
-            )}
+              <h3 className="text-xl font-bold tracking-wide">The Court&apos;s Verdict</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`inline-flex items-center px-4 py-1.5 rounded-md text-base font-black tracking-wider ${verdictColor}`}>
+                  {caseData.verdict === "GUILTY" ? "⚡ GUILTY" : caseData.verdict === "NOT_GUILTY" ? "🛡️ NOT GUILTY" : "🔍 INSUFFICIENT EVIDENCE"}
+                </span>
+                <SeverityDisplay severity={caseData.severity} />
+              </div>
+              {caseData.reasoning && (
+                <div className="bg-black/30 rounded-lg p-4 border border-white/5">
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5 font-semibold uppercase tracking-wider">
+                    <span className="text-accent">🤖</span> AI Judges&apos; Reasoning
+                  </p>
+                  <p className="text-sm text-foreground/85 leading-relaxed">{caseData.reasoning}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -290,32 +298,42 @@ export function CaseDetail({ caseData, onBack }: CaseDetailProps) {
       {canJudge && (
         <div className="gotham-card p-6 text-center">
           {judgeCase.isPending ? (
-            <div className="space-y-4">
+            <div className="space-y-6 py-4">
               <div className="flex justify-center">
                 <div className="relative">
-                  <Gavel className="w-10 h-10 text-accent animate-bounce" />
-                  <div className="absolute -inset-4 rounded-full border-2 border-accent/20 animate-ping" />
+                  <div className="absolute -inset-8 rounded-full bg-accent/10 animate-ping" style={{ animationDuration: "2s" }} />
+                  <div className="absolute -inset-4 rounded-full border border-accent/30 animate-pulse" />
+                  <Gavel className="relative w-12 h-12 text-accent animate-bounce" style={{ animationDuration: "1.5s" }} />
                 </div>
               </div>
-              <h3 className="text-lg font-bold">AI Judges Deliberating...</h3>
-              <div className="max-w-sm mx-auto space-y-2">
+              <div>
+                <h3 className="text-xl font-bold mb-1">AI Judges Deliberating...</h3>
+                <p className="text-sm text-muted-foreground">This may take a minute. Gotham&apos;s justice is thorough.</p>
+              </div>
+              <div className="max-w-md mx-auto space-y-3">
                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-accent rounded-full animate-[judgeProgress_60s_ease-in-out_forwards]" />
+                  <div className="h-full bg-accent rounded-full animate-[judgeProgress_90s_ease-in-out_forwards]" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Scraping evidence, analyzing arguments, reaching consensus via Optimistic Democracy...
-                </p>
+                <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                  <span className="animate-pulse">🔍 Scraping evidence from submitted URLs...</span>
+                  <span className="animate-pulse" style={{ animationDelay: "0.5s" }}>🤖 AI analyzing arguments from both sides...</span>
+                  <span className="animate-pulse" style={{ animationDelay: "1s" }}>⚖️ Reaching consensus via Optimistic Democracy...</span>
+                </div>
               </div>
             </div>
           ) : (
-            <>
-              <p className="text-muted-foreground mb-4">
-                Both sides have presented their case. Call upon the AI judges of Gotham.
+            <div className="py-2">
+              <Gavel className="w-8 h-8 text-accent mx-auto mb-3" />
+              <p className="text-muted-foreground mb-5">
+                Both sides have presented their case. The evidence is ready.
               </p>
-              <Button onClick={handleJudge} className="btn-bat h-12 px-8 text-lg">
+              <Button onClick={handleJudge} className="btn-bat h-12 px-10 text-lg font-bold">
                 <Gavel className="w-5 h-5 mr-2" /> Deliver Judgment
               </Button>
-            </>
+              <p className="text-xs text-muted-foreground/50 mt-3">
+                Anyone can trigger judgment — AI consensus ensures fairness.
+              </p>
+            </div>
           )}
         </div>
       )}
