@@ -58,7 +58,22 @@ def test_file_case_and_judge():
     )
     assert tx_execution_succeeded(file_result)
 
-    # Judge the case (without defense)
+    # Submit defense (required before judgment)
+    defense_result = contract.submit_defense(
+        args=[
+            0,
+            "The NFT utility is still in development. Delays were communicated to holders via Discord.",
+            "https://example.com/nft-roadmap",
+        ],
+        from_account=defendant,
+    )
+    assert tx_execution_succeeded(defense_result)
+
+    # Verify defense was recorded
+    case_data = contract.get_case(args=[0])
+    assert case_data["status"] == "DEFENSE"
+
+    # Judge the case (now that defense has been filed)
     judge_result = contract.judge_case(
         args=[0],
         wait_interval=15000,
