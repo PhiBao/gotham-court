@@ -81,7 +81,7 @@ class GothamCourt(gl.Contract):
             raise gl.UserError("Case is not open for defense")
         if gl.message.sender_address != case.defendant:
             raise gl.UserError("Only the defendant can submit a defense")
-        if not defense_text:
+        if not defense_text or not defense_text.strip():
             raise gl.UserError("Defense text is required")
 
         case.defense_text = defense_text
@@ -106,7 +106,6 @@ class GothamCourt(gl.Contract):
         evidence_urls_str = case.evidence_urls
         defense_text = case.defense_text
         defense_urls_str = case.defense_urls
-        has_defense = case.status == "DEFENSE"
 
         def leader_fn():
             # Scrape plaintiff evidence
@@ -126,7 +125,7 @@ class GothamCourt(gl.Contract):
 
             # Scrape defendant evidence
             defendant_evidence = []
-            if has_defense and defense_urls_str:
+            if defense_urls_str:
                 for url in defense_urls_str.split(","):
                     url = url.strip()
                     if url:
@@ -140,9 +139,7 @@ class GothamCourt(gl.Contract):
                                 f"[Source: {url}]\n(Failed to fetch)"
                             )
 
-            defense_section = ""
-            if has_defense:
-                defense_section = f"""
+            defense_section = f"""
 DEFENDANT'S DEFENSE:
 {defense_text[:5000]}
 

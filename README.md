@@ -134,19 +134,20 @@ User (MetaMask) → Frontend (Next.js) → genlayer-js SDK → GenLayer RPC
 
 Built to demonstrate how GenLayer's AI-native blockchain enables trustless, transparent dispute resolution where AI validators independently analyze evidence and reach consensus — no human judges required.
 
+## Security
+
+The intelligent contract has been through a full security audit (see [`.audit/findings/`](.audit/findings/)). Key hardening measures:
+
+- **Defense-required judgment** — `judge_case` requires a defense submission before AI judgment can proceed, preventing rush-to-judgment attacks
+- **Prompt injection mitigation** — User-submitted data is wrapped in `BEGIN/END` markers with explicit instructions to ignore embedded commands, and all inputs are truncated (title: 200 chars, description/defense: 5,000 chars, web scrapes: 2,000 chars)
+- **Input validation** — Whitespace-only strings rejected for title, description, evidence URLs, and defense text
+- **Verdict consensus** — Validators independently re-run the full judgment pipeline and verify verdict match + severity within ±2 tolerance
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE) for details.
 
-## 💬 Community
-Connect with the GenLayer community to discuss, collaborate, and share insights:
-- **[Discord Channel](https://discord.gg/8Jm4v89VAu)**: Our primary hub for discussions, support, and announcements.
-- **[Telegram Group](https://t.me/genlayer)**: For more informal chats and quick updates.
+## Links
 
-Your continuous feedback drives better product development. Please engage with us regularly to test, discuss, and improve GenLayer.
-
-## 📖 Documentation
-For detailed information on how to use GenLayerJS SDK, please refer to our [documentation](https://docs.genlayer.com/).
-
-## 📜 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **[GenLayer Documentation](https://docs.genlayer.com/)**
+- **[Discord](https://discord.gg/8Jm4v89VAu)** | **[Telegram](https://t.me/genlayer)**
