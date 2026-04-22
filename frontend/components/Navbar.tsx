@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { AccountPanel } from "./AccountPanel";
 import { useWallet } from "@/lib/genlayer/wallet";
 import { useGothamCourt } from "@/lib/hooks/useGothamCourt";
-import { Plus } from "lucide-react";
+import { Plus, Droplets, Trophy, History } from "lucide-react";
+import Link from "next/link";
 import { Button } from "./ui/button";
 
 interface NavbarProps {
@@ -67,7 +68,25 @@ export function Navbar({ onFileCaseClick }: NavbarProps) {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Link href="/leaderboard">
+                <Button variant="ghost" size="sm" className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 hidden md:inline-flex">
+                  <Trophy className="w-4 h-4 mr-1" />
+                  Leaderboard
+                </Button>
+              </Link>
+              <Link href="/history">
+                <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80 hover:bg-accent/10 hidden md:inline-flex">
+                  <History className="w-4 h-4 mr-1" />
+                  History
+                </Button>
+              </Link>
+              <Link href="/faucet">
+                <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10">
+                  <Droplets className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Faucet</span>
+                </Button>
+              </Link>
               {isConnected && onFileCaseClick && (
                 <Button variant="default" size="sm" className="btn-bat" onClick={onFileCaseClick}>
                   <Plus className="w-4 h-4 mr-1" />

@@ -2,6 +2,12 @@
  * TypeScript types for Gotham Court contract
  */
 
+export interface CaseBetTotals {
+  guilty: number;
+  not_guilty: number;
+  insufficient_evidence: number;
+}
+
 export interface Case {
   id: number;
   plaintiff: string;
@@ -15,6 +21,8 @@ export interface Case {
   reasoning: string;
   severity: number;
   status: "OPEN" | "DEFENSE" | "JUDGED";
+  escrow?: number;
+  bet_totals?: CaseBetTotals;
 }
 
 export interface CaseSummary {
@@ -25,6 +33,16 @@ export interface CaseSummary {
   verdict: string;
   severity: number;
   status: "OPEN" | "DEFENSE" | "JUDGED";
+  bet_totals?: CaseBetTotals;
+}
+
+export interface Bet {
+  exists: boolean;
+  bettor: string;
+  case_id: number;
+  outcome: string;
+  amount: number;
+  claimed: boolean;
 }
 
 export interface TransactionReceipt {

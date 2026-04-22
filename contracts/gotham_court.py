@@ -21,9 +21,33 @@ class Case:
     status: str  # OPEN, DEFENSE, JUDGED
 
 
+@allow_storage
+@dataclass
+class Bet:
+    bettor: Address
+    case_id: u256
+    outcome: str  # GUILTY, NOT_GUILTY, INSUFFICIENT_EVIDENCE
+    amount: u256
+    claimed: bool
+
+
+# EVM interface for sending native GEN to EOAs (bettors)
+# v0.1.3+ syntax requires View + Write inner classes
+@gl.evm.contract_interface
+class _Recipient:
+    class View:
+        pass
+    class Write:
+        pass
+
+
 class GothamCourt(gl.Contract):
     cases: TreeMap[u256, Case]
     case_count: u256
+    bets: TreeMap[str, Bet]
+    bet_totals: TreeMap[str, u256]
+    # Total GEN held in escrow per case (so we know what was actually received)
+    case_escrow: TreeMap[u256, u256]
 
     def __init__(self):
         self.case_count = 0
@@ -63,6 +87,7 @@ class GothamCourt(gl.Contract):
             status="OPEN",
         )
         self.cases[case_id] = case
+        self.case_escrow[case_id] = 0
         return case_id
 
     @gl.public.write
@@ -87,6 +112,109 @@ class GothamCourt(gl.Contract):
         case.defense_text = defense_text
         case.defense_urls = defense_urls
         case.status = "DEFENSE"
+
+    @gl.public.write.payable
+    def place_bet(
+        self,
+        case_id: u256,
+        outcome: str,
+    ) -> None:
+        amount = gl.message.value
+
+        # ---- Guards ----
+        if case_id not in self.cases:
+            raise gl.UserError("Case not found")
+
+        case = self.cases[case_id]
+
+        if case.status == "JUDGED":
+            raise gl.UserError("Betting is closed — case already judged")
+
+        if amount == 0:
+            raise gl.UserError("Bet requires sending GEN tokens (value > 0)")
+
+        sender = gl.message.sender_address
+        if sender == case.plaintiff or sender == case.defendant:
+            raise gl.UserError("Plaintiff and defendant cannot bet on their own case")
+
+        normalized_outcome = outcome.upper().replace(" ", "_")
+        if normalized_outcome not in ("GUILTY", "NOT_GUILTY", "INSUFFICIENT_EVIDENCE"):
+            raise gl.UserError("Invalid outcome — must be GUILTY, NOT_GUILTY, or INSUFFICIENT_EVIDENCE")
+
+        # ---- State mutation ----
+        bet_key = f"{case_id}:{sender.as_hex}"
+        total_key = f"{case_id}:{normalized_outcome}"
+
+        existing_bet = self.bets.get(bet_key)
+        if existing_bet is not None:
+            # User already has a bet — must be on same outcome to add
+            if existing_bet.outcome != normalized_outcome:
+                raise gl.UserError("You already bet on a different outcome for this case")
+            existing_bet.amount += amount
+        else:
+            self.bets[bet_key] = Bet(
+                bettor=sender,
+                case_id=case_id,
+                outcome=normalized_outcome,
+                amount=amount,
+                claimed=False,
+            )
+
+        # Update pool total and escrow
+        current_total = self.bet_totals.get(total_key, 0)
+        self.bet_totals[total_key] = current_total + amount
+        current_escrow = self.case_escrow.get(case_id, 0)
+        self.case_escrow[case_id] = current_escrow + amount
+
+    @gl.public.write
+    def claim_winnings(self, case_id: u256) -> u256:
+        # ---- Guards ----
+        if case_id not in self.cases:
+            raise gl.UserError("Case not found")
+
+        case = self.cases[case_id]
+        if case.status != "JUDGED":
+            raise gl.UserError("Case has not been judged yet")
+        if not case.verdict:
+            raise gl.UserError("No verdict recorded")
+
+        sender = gl.message.sender_address
+        bet_key = f"{case_id}:{sender.as_hex}"
+
+        bet = self.bets.get(bet_key)
+        if bet is None:
+            raise gl.UserError("You have no bet on this case")
+        if bet.claimed:
+            raise gl.UserError("Winnings already claimed")
+
+        # ---- Payout calculation ----
+        guilty_total = self.bet_totals.get(f"{case_id}:GUILTY", 0)
+        not_guilty_total = self.bet_totals.get(f"{case_id}:NOT_GUILTY", 0)
+        insufficient_total = self.bet_totals.get(f"{case_id}:INSUFFICIENT_EVIDENCE", 0)
+        total_pool = guilty_total + not_guilty_total + insufficient_total
+
+        winning_total = self.bet_totals.get(f"{case_id}:{case.verdict}", 0)
+
+        winnings = 0
+        if winning_total > 0:
+            if bet.outcome == case.verdict:
+                # Proportional share of entire pool (including losing bets)
+                winnings = (bet.amount * total_pool) // winning_total
+        else:
+            # No one bet on the winning outcome — refund all bettors
+            winnings = bet.amount
+
+        # Mark as claimed (state update MUST happen before external effects)
+        bet.claimed = True
+
+        # ---- Real GEN transfer to bettor ----
+        if winnings > 0:
+            # Check contract has enough balance (defensive; should always be true)
+            if self.balance < winnings:
+                raise gl.UserError("Contract balance insufficient for payout — contact admin")
+            _Recipient(sender).emit_transfer(value=winnings)
+
+        return winnings
 
     @gl.public.write
     def judge_case(self, case_id: u256) -> None:
@@ -238,6 +366,13 @@ Return a JSON object with exactly these fields:
         if case_id not in self.cases:
             raise gl.UserError("Case not found")
         c = self.cases[case_id]
+
+        # Build betting totals
+        guilty_total = self.bet_totals.get(f"{case_id}:GUILTY", 0)
+        not_guilty_total = self.bet_totals.get(f"{case_id}:NOT_GUILTY", 0)
+        insufficient_total = self.bet_totals.get(f"{case_id}:INSUFFICIENT_EVIDENCE", 0)
+        escrow = self.case_escrow.get(case_id, 0)
+
         return {
             "id": int(c.id),
             "plaintiff": c.plaintiff.as_hex,
@@ -251,6 +386,12 @@ Return a JSON object with exactly these fields:
             "reasoning": c.reasoning,
             "severity": int(c.severity),
             "status": c.status,
+            "escrow": int(escrow),
+            "bet_totals": {
+                "guilty": int(guilty_total),
+                "not_guilty": int(not_guilty_total),
+                "insufficient_evidence": int(insufficient_total),
+            },
         }
 
     @gl.public.view
@@ -261,6 +402,10 @@ Return a JSON object with exactly these fields:
     def get_all_cases(self) -> list:
         result = []
         for case_id, c in self.cases.items():
+            guilty_total = self.bet_totals.get(f"{case_id}:GUILTY", 0)
+            not_guilty_total = self.bet_totals.get(f"{case_id}:NOT_GUILTY", 0)
+            insufficient_total = self.bet_totals.get(f"{case_id}:INSUFFICIENT_EVIDENCE", 0)
+
             result.append({
                 "id": int(c.id),
                 "plaintiff": c.plaintiff.as_hex,
@@ -269,5 +414,60 @@ Return a JSON object with exactly these fields:
                 "verdict": c.verdict,
                 "severity": int(c.severity),
                 "status": c.status,
+                "bet_totals": {
+                    "guilty": int(guilty_total),
+                    "not_guilty": int(not_guilty_total),
+                    "insufficient_evidence": int(insufficient_total),
+                },
             })
         return result
+
+    @gl.public.view
+    def get_bet(self, case_id: u256, bettor: Address) -> dict:
+        bettor_as_addr = Address(bettor) if isinstance(bettor, str) else bettor
+        bet_key = f"{case_id}:{bettor_as_addr.as_hex}"
+        bet = self.bets.get(bet_key)
+
+        if bet is None:
+            return {
+                "exists": False,
+                "bettor": "",
+                "case_id": int(case_id),
+                "outcome": "",
+                "amount": 0,
+                "claimed": False,
+            }
+
+        return {
+            "exists": True,
+            "bettor": bet.bettor.as_hex,
+            "case_id": int(bet.case_id),
+            "outcome": bet.outcome,
+            "amount": int(bet.amount),
+            "claimed": bet.claimed,
+        }
+
+    @gl.public.view
+    def get_case_bet_totals(self, case_id: u256) -> dict:
+        if case_id not in self.cases:
+            raise gl.UserError("Case not found")
+
+        guilty_total = self.bet_totals.get(f"{case_id}:GUILTY", 0)
+        not_guilty_total = self.bet_totals.get(f"{case_id}:NOT_GUILTY", 0)
+        insufficient_total = self.bet_totals.get(f"{case_id}:INSUFFICIENT_EVIDENCE", 0)
+
+        return {
+            "guilty": int(guilty_total),
+            "not_guilty": int(not_guilty_total),
+            "insufficient_evidence": int(insufficient_total),
+        }
+
+    @gl.public.view
+    def get_contract_balance(self) -> int:
+        return int(self.balance)
+
+    @gl.public.view
+    def get_case_escrow(self, case_id: u256) -> int:
+        if case_id not in self.cases:
+            raise gl.UserError("Case not found")
+        return int(self.case_escrow.get(case_id, 0))

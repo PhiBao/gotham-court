@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CaseSummary } from "@/lib/contracts/types";
 import { AddressDisplay } from "./AddressDisplay";
-import { Scale, ShieldAlert, Gavel, BarChart3 } from "lucide-react";
+import { Scale, ShieldAlert, Gavel, BarChart3, Coins } from "lucide-react";
 
 /* ---- Badges ---- */
 
@@ -102,6 +102,19 @@ function CaseAnalytics({ cases }: { cases: CaseSummary[] }) {
     ? (cases.filter((c) => c.status === "JUDGED").reduce((s, c) => s + c.severity, 0) / judged).toFixed(1)
     : "—";
 
+  const totalBetVolume = cases.reduce(
+    (sum, c) =>
+      sum +
+      (c.bet_totals?.guilty || 0) +
+      (c.bet_totals?.not_guilty || 0) +
+      (c.bet_totals?.insufficient_evidence || 0),
+    0
+  );
+  const activeBetting = cases.filter(
+    (c) => c.status !== "JUDGED" &&
+      ((c.bet_totals?.guilty || 0) + (c.bet_totals?.not_guilty || 0) + (c.bet_totals?.insufficient_evidence || 0)) > 0
+  ).length;
+
   return (
     <div className="gotham-card p-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
@@ -116,8 +129,14 @@ function CaseAnalytics({ cases }: { cases: CaseSummary[] }) {
         <Stat label="Guilty" value={guilty} color="text-red-400" />
         <Stat label="Avg Sev." value={avgSev} color="text-orange-400" />
       </div>
+      <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
+        <Coins className="w-3 h-3 text-accent" />
+        <span>
+          {totalBetVolume > 0 ? `${totalBetVolume} total bet volume` : "No bets yet"} · {activeBetting} case{activeBetting !== 1 ? "s" : ""} with active betting
+        </span>
+      </div>
       {judged > 0 && (
-        <div className="mt-3 flex gap-1 h-2 rounded-full overflow-hidden">
+        <div className="mt-2 flex gap-1 h-2 rounded-full overflow-hidden">
           {guilty > 0 && (
             <div className="rounded-full" style={{ width: `${(guilty / judged) * 100}%`, background: "oklch(0.6 0.22 25)" }} />
           )}
@@ -152,6 +171,11 @@ interface CaseCardProps {
 }
 
 function CaseCard({ caseData, onClick }: CaseCardProps) {
+  const totalBets =
+    (caseData.bet_totals?.guilty || 0) +
+    (caseData.bet_totals?.not_guilty || 0) +
+    (caseData.bet_totals?.insufficient_evidence || 0);
+
   return (
     <button
       onClick={onClick}
@@ -175,6 +199,39 @@ function CaseCard({ caseData, onClick }: CaseCardProps) {
           <AddressDisplay address={caseData.defendant} maxLength={10} className="text-foreground/70" />
         </div>
       </div>
+
+      {totalBets > 0 && caseData.status !== "JUDGED" && (
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex-1 flex h-1.5 rounded-full overflow-hidden bg-secondary">
+            {caseData.bet_totals && (
+              <>
+                <div
+                  className="bg-red-500"
+                  style={{
+                    width: `${(caseData.bet_totals.guilty / totalBets) * 100}%`,
+                  }}
+                />
+                <div
+                  className="bg-green-500"
+                  style={{
+                    width: `${(caseData.bet_totals.not_guilty / totalBets) * 100}%`,
+                  }}
+                />
+                <div
+                  className="bg-amber-500"
+                  style={{
+                    width: `${(caseData.bet_totals.insufficient_evidence / totalBets) * 100}%`,
+                  }}
+                />
+              </>
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+            <Coins className="w-3 h-3" />
+            {totalBets}
+          </span>
+        </div>
+      )}
 
       {caseData.status === "JUDGED" && (
         <div className="flex items-center gap-3 pt-2 border-t border-border/50">

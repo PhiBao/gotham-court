@@ -79,8 +79,8 @@ export default function HomePage() {
                   {[
                     { step: "1", emoji: "🔦", title: "File Case", desc: "Light the Bat-Signal. Identify the defendant, present your evidence, and state your case." },
                     { step: "2", emoji: "🛡️", title: "Defense", desc: "The accused answers the charges. Submit a defense statement and counter-evidence." },
-                    { step: "3", emoji: "🤖", title: "AI Judgment", desc: "AI judges scrape evidence, analyze arguments, and reach consensus via Optimistic Democracy." },
-                    { step: "4", emoji: "⚖️", title: "Verdict", desc: "Guilty, Not Guilty, or Insufficient Evidence — etched on-chain permanently." },
+                    { step: "3", emoji: "🪙", title: "Place Bets", desc: "The crowd weighs in. Bet on Guilty, Not Guilty, or Insufficient Evidence before judgment closes." },
+                    { step: "4", emoji: "⚖️", title: "Verdict & Payout", desc: "AI judges deliver the verdict. Winning bettors claim their proportional share of the pool." },
                   ].map(({ step, emoji, title, desc }) => (
                     <div key={step} className="space-y-3 text-center md:text-left">
                       <div className="text-3xl">{emoji}</div>
@@ -98,7 +98,7 @@ export default function HomePage() {
                 <span className="bg-secondary/50 px-2.5 py-1 rounded-full">GenLayer SDK</span>
                 <span className="bg-secondary/50 px-2.5 py-1 rounded-full">Optimistic Democracy</span>
                 <span className="bg-secondary/50 px-2.5 py-1 rounded-full">AI Consensus</span>
-                <span className="bg-secondary/50 px-2.5 py-1 rounded-full">On-Chain Verdicts</span>
+                <span className="bg-secondary/50 px-2.5 py-1 rounded-full">On-Chain Prediction Market</span>
               </div>
             </>
           )}

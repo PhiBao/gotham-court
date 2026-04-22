@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { ArrowLeft, Gavel, Shield, Loader2, CheckCircle2, Clock, FileText } from "lucide-react";
 import { Case } from "@/lib/contracts/types";
-import { useWallet } from "@/lib/genlayer/wallet";
+import { useWallet } from "@/lib/genlayer/WalletProvider";
 import { useGothamCourt } from "@/lib/hooks/useGothamCourt";
 import { success, error } from "@/lib/utils/toast";
 import { AddressDisplay } from "./AddressDisplay";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { BettingPanel } from "./BettingPanel";
 
 /* ---- Timeline ---- */
 
@@ -92,7 +93,12 @@ interface CaseDetailProps {
 
 export function CaseDetail({ caseData, onBack }: CaseDetailProps) {
   const { address } = useWallet();
-  const { submitDefense, judgeCase } = useGothamCourt();
+  const { submitDefense, judgeCase, useBet, useCaseBetTotals, useCaseEscrow, placeBet, claimWinnings } =
+    useGothamCourt();
+
+  const { data: userBet } = useBet(caseData.id, address);
+  const { data: betTotals } = useCaseBetTotals(caseData.id);
+  const { data: escrow } = useCaseEscrow(caseData.id);
 
   const [defenseText, setDefenseText] = useState("");
   const [defenseUrls, setDefenseUrls] = useState("");
@@ -252,6 +258,16 @@ export function CaseDetail({ caseData, onBack }: CaseDetailProps) {
           </div>
         </div>
       )}
+
+      {/* Betting Panel */}
+      <BettingPanel
+        caseData={caseData}
+        bet={userBet}
+        totals={betTotals || caseData.bet_totals}
+        escrow={escrow}
+        placeBet={placeBet}
+        claimWinnings={claimWinnings}
+      />
 
       {/* Defense Form */}
       {canDefend && (
